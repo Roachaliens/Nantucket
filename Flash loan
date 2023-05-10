@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+}
+
+interface IFlashLoan {
+
+    function flashLoan(address receiver, address token, uint256 amount, bytes calldata params) external;
+
+}
+
+contract FlashLoanExample {
+
+    address constant public DEX_A = 0x1...; // Address of Dex A
+
+    address constant public DEX_B = 0x2...; // Address of Dex B
+
+    address constant public TOKEN = 0x3...; // Address of token to be used in flash loan
+
+    uint256 constant public AMOUNT = 100000 ether; // Amount of flash loan to be taken out
+
+    function startArbitrage() external {
+
+        // Call flash loan function on Dex A
+
+        IFlashLoan(DEX_A).flashLoan(address(this), TOKEN, AMOUNT, '');
+
+        // Perform arbitrage trade on Dex B
+
+        uint256 balance = IERC20(TOKEN).balanceOf(address(this));
+
+        IERC20(TOKEN).transfer(DEX_B, balance);
+
+        // Repay flash loan
+
+        IERC20(TOKEN).transfer(DEX_A, AMOUNT);
+
+    }
+
+    function execute(address token, uint256 amount, bytes calldata params) external {
+
+        // Approve Dex B to spend the flash loaned amount of token
+
+        IERC20(token).approve(DEX_B, amount);
+
+    }
+
+}
+
